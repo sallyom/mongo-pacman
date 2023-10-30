@@ -53,42 +53,62 @@ router.post('/', urlencodedParser, function(req, res, next) {
             return next(err);
         }
 
-        // Insert high score with extra user data
-        db.collection('highscore').insertOne({
-                name: req.body.name,
-                cloud: req.body.cloud,
-                zone: req.body.zone,
-                host: req.body.host,
-                score: userScore,
-                level: userLevel,
-                date: Date(),
-                referer: req.headers.referer,
-                user_agent: req.headers['user-agent'],
-                hostname: req.hostname,
-                ip_addr: req.ip
-            }, {
-                w: 'majority',
-                j: true,
-                wtimeout: 10000
-            }, function(err, result) {
-                var returnStatus = '';
+        // Check if the new score is higher than the existing highest score
+        var col = db.collection('highscore');
+        col.findOne({}, { sort: { score: -1 } }, function (err, highestScore) {
+            if (err) {
+                console.log(err);
+                return next(err);
+            }
+            if (!highestScore || userScore > highestScore.score) {
+                // Insert high score with extra user data
+                db.collection('highscore').insertOne({
+                    name: req.body.name,
+                    cloud: req.body.cloud,
+                    zone: req.body.zone,
+                    host: req.body.host,
+                    score: userScore,
+                    level: userLevel,
+                    date: Date(),
+                    referer: req.headers.referer,
+                    user_agent: req.headers['user-agent'],
+                    hostname: req.hostname,
+                    ip_addr: req.ip
+                }, {
+                    w: 'majority',
+                    j: true,
+                    wtimeout: 10000
+                }, function (err, result) {
+                    var returnStatus = '';
 
-                if (err) {
-                    console.log(err);
-                    returnStatus = 'error';
-                } else {
-                    console.log('Successfully inserted highscore');
-                    returnStatus = 'success';
-                }
+                    if (err) {
+                        console.log(err);
+                        returnStatus = 'error';
+                    } else {
+                        console.log('Successfully inserted highscore');
+                        returnStatus = 'success';
+                    }
 
+                    res.json({
+                        name: req.body.name,
+                        zone: req.body.zone,
+                        score: userScore,
+                        level: userLevel,
+                        rs: returnStatus
+                    });
+                });
+            } else {
+                // Don't insert the new score as it's not higher than the existing highest score
+                console.log('Not the highest score. Discarding.');
                 res.json({
                     name: req.body.name,
                     zone: req.body.zone,
                     score: userScore,
                     level: userLevel,
-                    rs: returnStatus
+                    rs: 'discarded'
                 });
-            });
+            }
+        });
     });
 });
 
