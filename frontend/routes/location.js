@@ -26,6 +26,10 @@ router.get('/metadata', function(req, res, next) {
     });
 });
 
+router.get('/hello', function(req, res, next) {
+    res.send('Hello, PACMAN!');
+});
+
 function getCloudMetadata(callback) {
     console.log('getCloudMetadata');
     // Query k8s node api
