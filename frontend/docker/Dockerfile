@@ -1,8 +1,7 @@
 FROM registry.access.redhat.com/ubi8/ubi
  
 
-WORKDIR /pacman 
-RUN dnf -y  module install nodejs:18/common 
+WORKDIR /pacman
 
 RUN dnf -y install npm jq  && dnf clean all && npm install mongodb    
  
