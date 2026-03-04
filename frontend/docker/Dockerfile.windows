@@ -1,4 +1,5 @@
 FROM fedora
+ 
 
 WORKDIR /pacman
 
@@ -10,4 +11,7 @@ RUN npm install
  
 EXPOSE 8080 
 COPY  pacman.sh /usr/local/bin/
+RUN dnf -y install dos2unix
+RUN dos2unix /usr/local/bin/pacman.sh && chmod +x /usr/local/bin/pacman.sh
+
 ENTRYPOINT ["pacman.sh"]
